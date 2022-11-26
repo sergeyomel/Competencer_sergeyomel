@@ -55,12 +55,16 @@ def get_vacancies(link):
         tags = [tag.text for tag in soup.find(attrs={"class":"bloko-tag-list"}).find_all(attrs={"class":"bloko-tag__section_text"})]
     except:
         tags = []
-    #try:
-        #requirements = (soup.find("div", attrs={"class":"g-user-content"}).find_all("p",recursive=False).find("strong").find("span").text)
-    #except:
-        #requirements = ""
     try:
-            employer = soup.find(attrs={"class":"vacancy-company-name"}).text.replace("\xa0"," ")
+        requirements = [requirement.text for requirement in soup.find("div", attrs={"class":"g-user-content"}).find_all("ul")[1].find_all("li")]
+    except:
+        requirements = ""
+    try:
+        recommended_skills = [recommended_skill.text for recommended_skill in soup.find("div", attrs={"class":"g-user-content"}).find_all("ul")[2].find_all("li")]
+    except:
+        recommended_skills = ""
+    try:
+        employer = soup.find(attrs={"class":"vacancy-company-name"}).text.replace("\xa0"," ")
     except:
         employer = ""
     try:
@@ -80,7 +84,8 @@ def get_vacancies(link):
         'experience':experience,
         "salary":  salary,
         "tags":tags,
-       #"requirements":requirements,
+        "requirements":requirements,
+        "recommended_skills":recommended_skills,
         "employer":employer,
         'address': address,
         'published':published
@@ -91,6 +96,6 @@ def get_vacancies(link):
 if __name__=="__main__":
     vacancie = 1
     for a in get_links():
-        #print(a)
-        print(get_vacancies(a))
+        print(a)
+        data = json.dumps(get_vacancies(a))
         time.sleep(1)
