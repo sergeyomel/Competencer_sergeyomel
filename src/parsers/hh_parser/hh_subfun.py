@@ -32,10 +32,13 @@ def get_links():
                 yield f"{a.attrs['href'].split('?')[0]}"
         except Exception as e:
             print(f"{e}")
-        time.sleep(1)
+
 
 def get_vacancies(link):
     ua = fake_useragent.UserAgent()
+    ind_of_id = link.index('vacancy/') + len('vacancy/')
+    id = link[ind_of_id:ind_of_id+8]
+
     data = requests.get(
         url=link,
         headers={"user-agent": ua.random}
@@ -80,6 +83,7 @@ def get_vacancies(link):
     except:
         experience = ''
     vacancy = {
+        "id": id,
         "name":name,
         'experience':experience,
         "salary":  salary,
@@ -92,10 +96,3 @@ def get_vacancies(link):
     }
     return vacancy
 
-
-if __name__=="__main__":
-    vacancie = 1
-    for a in get_links():
-        print(a)
-        data = json.dumps(get_vacancies(a))
-        time.sleep(1)

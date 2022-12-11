@@ -5,7 +5,12 @@ import re
 import fake_useragent
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
 
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
 class Parser:
     def __init__(self):
@@ -85,6 +90,7 @@ def main():
 
     with open("data.json", "a", encoding="utf-8") as file:
         json.dump(p.html_elements, file, indent=4, ensure_ascii=False)
+
 
 if __name__ == "__main__":
     main()
