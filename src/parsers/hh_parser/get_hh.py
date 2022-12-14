@@ -6,7 +6,6 @@ from src.db.requests.DbLoader import DbLoader
 def get_hh():
     loader = DbLoader()
     for a in get_links():
-        print(a)
         data = json.dumps(get_vacancies(a))
 
         loader.load(data)
