@@ -1,4 +1,4 @@
-import requests, json, sys, time, random, os
+import requests, json,  time, datetime, re
 from bs4 import BeautifulSoup
 import fake_useragent
 
@@ -32,13 +32,10 @@ def get_links():
                 yield f"{a.attrs['href'].split('?')[0]}"
         except Exception as e:
             print(f"{e}")
-
+        time.sleep(1)
 
 def get_vacancies(link):
     ua = fake_useragent.UserAgent()
-    ind_of_id = link.index('vacancy/') + len('vacancy/')
-    id = link[ind_of_id:ind_of_id+8]
-
     data = requests.get(
         url=link,
         headers={"user-agent": ua.random}
@@ -46,6 +43,12 @@ def get_vacancies(link):
     if data.status_code != 200:
         return
     soup = BeautifulSoup(data.content, "lxml")
+    v = soup.text
+    vacancy_id = str(link).split('/')[-1]
+    f = open('hh.txt', 'w')
+    f.write('v')
+    f.close()
+
     try:
         name = soup.find(attrs={"class":"bloko-header-section-1"}).text
     except:
@@ -54,12 +57,27 @@ def get_vacancies(link):
         salary = soup.find(attrs={"class":"bloko-header-section-2 bloko-header-section-2_lite"}).text.replace("\xa0", "")
     except:
         salary = ""
+    value = re.findall(r"\S\d{3,}", salary)
+    min = ""
+    max = ""
+    if len(value) > 1:
+        min = value[0]
+        max = value[1]
+    elif len(value) == 1:
+        max = value[0]
+    #Вставь код с 69-83 строчек
+    try:
+        responsibText = soup.find(attrs={'class':'g-user-content'}).text
+        responsibilities = re.findall(r'(\Задачи|\Обязанности|\Что предстоит делать|\Что нужно делать\Чем предстоит заниматься)([\s\w*():;,-]+)[^\S]',responsibText)
+    except:
+        responsibilities = ''
     try:
         tags = [tag.text for tag in soup.find(attrs={"class":"bloko-tag-list"}).find_all(attrs={"class":"bloko-tag__section_text"})]
     except:
         tags = []
     try:
-        requirements = [requirement.text for requirement in soup.find("div", attrs={"class":"g-user-content"}).find_all("ul")[1].find_all("li")]
+        requirementsText = soup.find(attrs={'class':'g-user-content'}).text
+        requirements = re.findall(r'(\Требования|\Что необходимо|\Мы ждем от вас|\Наши ожидания|Мы ждем, что вы)([\s\w*():;""/!.,-]+)[^\S]',requirementsText)
     except:
         requirements = ""
     try:
@@ -73,7 +91,7 @@ def get_vacancies(link):
     try:
         address = soup.find(attrs={"class":"bloko-link bloko-link_kind-tertiary bloko-link_disable-visited"}).text
     except:
-        address = ''
+        address = ""
     try:
         published = soup.find(attrs={"class":"vacancy-creation-time-redesigned"}).text.replace("\xa0"," ")
     except:
@@ -82,17 +100,37 @@ def get_vacancies(link):
         experience = soup.find(attrs={"class":"vacancy-description-list-item"}).text
     except:
         experience = ''
-    vacancy = {
-        "id": id,
-        "name":name,
-        'experience':experience,
-        "salary":  salary,
-        "tags":tags,
-        "requirements":requirements,
-        "recommended_skills":recommended_skills,
-        "employer":employer,
-        'address': address,
-        'published':published
-    }
-    return vacancy
 
+    date_of_parsing = str(datetime.date.today())
+
+    item = {
+        "parcing":{
+            "date": date_of_parsing,
+            "resource": "hh"
+        },
+        "company": {
+           "name": employer,
+           "location": {
+               "country": "russia",
+               "city": address,
+               "street": ""
+           }
+        },
+       "vacancy": {
+        "vacancy_id": vacancy_id,
+        "publicDate": published,
+        "description": " ",
+        "workExp": experience,
+        "salary": {
+            "min": min,
+            "max": max
+        },
+        "skills": {
+            "necessary": requirements,
+            "extra": recommended_skills,
+            "key": tags
+        },
+        "responsibilities": responsibilities
+        }
+    }
+    return item
