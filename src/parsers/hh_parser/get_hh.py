@@ -9,3 +9,5 @@ def get_hh():
         data = json.dumps(get_vacancies(a))
 
         loader.load(data)
+
+get_hh()
