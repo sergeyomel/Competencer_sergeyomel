@@ -1,6 +1,6 @@
-import requests, json, sys, time, re, datetime
+import requests, json,  time, datetime, re
 from bs4 import BeautifulSoup
-import useragent
+import fake_useragent
 
 def get_links():
     ua = fake_useragent.UserAgent()
@@ -28,11 +28,11 @@ def get_links():
             if data.status_code != 200:
                 continue
             soup = BeautifulSoup(data.content, 'lxml')
-            for a in soup.find_all("a", attrs={"class":"serp-item__title"}):
+            for a in soup.find_all("a", attrs = {"class":"serp-item__title"}):
                 yield f"{a.attrs['href'].split('?')[0]}"
         except Exception as e:
             print(f"{e}")
-
+        time.sleep(1)
 
 def get_vacancies(link):
     ua = fake_useragent.UserAgent()
@@ -43,7 +43,12 @@ def get_vacancies(link):
     if data.status_code != 200:
         return
     soup = BeautifulSoup(data.content, "lxml")
+    v = soup.text
     vacancy_id = str(link).split('/')[-1]
+    f = open('hh.txt', 'w')
+    f.write('v')
+    f.close()
+
     try:
         name = soup.find(attrs={"class":"bloko-header-section-1"}).text
     except:
@@ -60,12 +65,19 @@ def get_vacancies(link):
         max = value[1]
     elif len(value) == 1:
         max = value[0]
+    #Вставь код с 69-83 строчек
+    try:
+        responsibText = soup.find(attrs={'class':'g-user-content'}).text
+        responsibilities = re.findall(r'(\Задачи|\Обязанности|\Что предстоит делать|\Что нужно делать\Чем предстоит заниматься)([\s\w*():;,-]+)[^\S]',responsibText)
+    except:
+        responsibilities = ''
     try:
         tags = [tag.text for tag in soup.find(attrs={"class":"bloko-tag-list"}).find_all(attrs={"class":"bloko-tag__section_text"})]
     except:
         tags = []
     try:
-        requirements = [requirement.text for requirement in soup.find("div", attrs={"class":"g-user-content"}).find_all("ul")[1].find_all("li")]
+        requirementsText = soup.find(attrs={'class':'g-user-content'}).text
+        requirements = re.findall(r'(\Требования|\Что необходимо|\Мы ждем от вас|\Наши ожидания|Мы ждем, что вы)([\s\w*():;""/!.,-]+)[^\S]',requirementsText)
     except:
         requirements = ""
     try:
@@ -118,9 +130,7 @@ def get_vacancies(link):
             "extra": recommended_skills,
             "key": tags
         },
-        "responsibilities": [" "]
+        "responsibilities": responsibilities
         }
     }
     return item
-
-
