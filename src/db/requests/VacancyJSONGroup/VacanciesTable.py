@@ -1,41 +1,34 @@
-import json
-
-import psycopg2
+import logging
 
 from src.db.requests.Writer import Writer
 
 
 class VacanciesTable(Writer):
 
-    def __init__(self, host, user, password, db_name):
-        Writer.__init__(self, host, user, password, db_name)
+    def __init__(self, connection):
+        Writer.__init__(self, connection)
 
-    def insert(self, title):
+        logging.basicConfig(level=logging.INFO, filename="dataload.log", filemode="w")
 
-        #Добавить заполнение развязочных таблиц
+    def insert(self, data):
+
+        title = data['title']
+        platform_id = data['id']
+
+        cursor = self.connection.cursor()
 
         try:
-            connection = psycopg2.connect(
-                host=self.host,
-                user=self.user,
-                database=self.db_name,
-                password=self.password
+            cursor.execute(
+                f" INSERT INTO vacancies (title, platform_id) "
+                f" VALUES ('{title}', '{platform_id}')"
+                f" RETURNING vacancy_id"
             )
-            connection.autocommit = True
-
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    f" INSERT INTO vacancies (title) "
-                    f" VALUES ('{title}')"
-                    f" RETURNING vacancy_id"
-                )
-                execute_result = cursor.fetchone()
-                print("[INFO] Data was successfully inserted")
-                return execute_result[0]
+            execute_result = cursor.fetchone()
+            return execute_result[0]
 
         except Exception as _ex:
-            print("[INFO] Error while working with PostgreSQL", _ex)
+            logging.exception("VacanciesTable", exc_info=True)
+            self.connection.close()
+
         finally:
-            if connection:
-                connection.close()
-                print("[INFO] PostgreSQL connection closed")
+            cursor.close()

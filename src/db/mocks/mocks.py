@@ -14,9 +14,10 @@ data = """
         }
       },
       "vacancy": {
-        "title": "посудомойка",
+        "id": "lksahbdef43345tjf",
+        "title": "posudomoika",
         "publicDate": "2004-10-19 10:23:54",
-        "description": "следить за чистотой приборов",
+        "description": "sledit za priborami",
         "workExp": 10,
         "salary": {
           "min": 50000,
@@ -56,9 +57,10 @@ data = """
         }
       },
       "vacancy": {
-        "title": "посудомойка",
+        "id": "lksahbdef43345tjf",
+        "title": "barmen",
         "publicDate": "2004-10-19 10:23:54",
-        "description": "следить за чистотой приборов",
+        "description": "nalivat popit",
         "workExp": 10,
         "salary": {
           "min": 50000,
@@ -80,7 +82,7 @@ data = """
           ]
         },
         "responsibilities": [
-          "менять воду в кулере"
+          "meniat vodku v kulere"
         ]
       }
     },
@@ -98,9 +100,10 @@ data = """
         }
       },
       "vacancy": {
-        "title": "посудомойка",
+        "id": "lksahbdef43345tjf",
+        "title": "kalyanschik",
         "publicDate": "2004-10-19 10:23:54",
-        "description": "следить за чистотой приборов",
+        "description": "nakurivat",
         "workExp": 10,
         "salary": {
           "min": 50000,
@@ -122,7 +125,7 @@ data = """
           ]
         },
         "responsibilities": [
-          "менять воду в кулере"
+          "menyat ugli"
         ]
       }
     }
