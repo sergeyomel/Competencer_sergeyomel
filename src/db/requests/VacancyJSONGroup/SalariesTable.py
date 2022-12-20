@@ -19,14 +19,14 @@ class SalariesTable(Writer):
         try:
             cursor.execute(
                 f" SELECT salary_id FROM salaries "
-                f" WHERE lower_threshold = {min} "
-                f" AND upper_threshold = {max} "
+                f" WHERE lower_threshold = '{min}' "
+                f" AND upper_threshold = '{max}' "
             )
             execute_result = cursor.fetchone()
             if execute_result is None:
                 cursor.execute(
                     f" INSERT INTO salaries (lower_threshold, upper_threshold) "
-                    f" VALUES ({min}, {max}) "
+                    f" VALUES ('{min}', '{max}') "
                     f" RETURNING salary_id"
                 )
                 execute_result = cursor.fetchone()
