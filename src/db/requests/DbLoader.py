@@ -25,15 +25,27 @@ class DbLoader:
                 password=password
             )
             connection.autocommit = True
+            cursor = connection.cursor()
 
             company_locations = CompanyLocationsTable(connection)
             parsers_table = ParserTable(connection)
 
             data = json.loads(data)
 
+
+
             for item in data:
-                company_locations.insert(item['company'])
-                parsers_table.insert(item)
+                platform_id = item["vacancy"]["id"]
+
+                cursor.execute(
+                    f" SELECT COUNT(platform_id) "
+                    f" FROM vacancies"
+                    f" WHERE platform_id = '{platform_id}' "
+                )
+                execute_result = cursor.fetchone()
+                if(execute_result[0] == 0):
+                    company_locations.insert(item['company'])
+                    parsers_table.insert(item)
 
             connection.close()
 
