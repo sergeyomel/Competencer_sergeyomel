@@ -71,6 +71,7 @@ def get_vacancies(link):
         salary = soup.find(attrs={"class":"bloko-header-section-2 bloko-header-section-2_lite"}).text.replace("\xa0", "")
         list_of_salary = re.findall(r"\S\d{3,}", salary)
         min_salary, max_salary = text_division(list_of_salary)
+
     except:
         min_salary = '0'
         max_salary = '0'
@@ -100,6 +101,7 @@ def get_vacancies(link):
         requirementsText = soup.find(attrs={'class':'g-user-content'}).text
         requirements = re.findall(r'(\Требования|\Что необходимо|\Мы ждем от вас|\Наши ожидания|Мы ждем, что вы)(.*?)(?=\.\s\s)',requirementsText)
         list_of_requirements = str(requirements[0][1]).split(';')
+
     except:
         list_of_requirements = []
 
@@ -107,6 +109,7 @@ def get_vacancies(link):
         recommended_skillsText  = soup.find("div", attrs={"class":"g-user-content"}).text
         recommended_skills = re.findall(r'(\Будет плюсом|\Дополнительные навыки|\Плюсом может быть\Плюсом будет, если вы)(.*?)(?=\.\s\s)', recommended_skillsText)
         list_of_recommended_skills = str(recommended_skills[0][1]).split(';')
+
     except:
         list_of_recommended_skills = []
 
@@ -133,8 +136,9 @@ def get_vacancies(link):
     except:
         published_date =''
 
+
     item = {
-        "parcing":{
+        "parsing":{
             "date": date_of_parsing,
             "resource": "hh"
         },
@@ -148,6 +152,7 @@ def get_vacancies(link):
         },
        "vacancy": {
         "id": vacancy_id,
+        "title": name,
         "publicDate": published_date,
         "description": " ",
         "workExp": {
