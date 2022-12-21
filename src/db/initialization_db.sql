@@ -11,14 +11,14 @@ CREATE DATABASE test_db_1
 
 CREATE TABLE locations (
 	location_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	country varchar(100),
-	city varchar(100),
-	street varchar(100)
+	country varchar(1000),
+	city varchar(1000),
+	street varchar(1000)
 );
 
 CREATE TABLE companies (
 	company_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	company_name varchar(150)
+	company_name varchar(300)
 );
 
 create table company_locations (
@@ -31,7 +31,7 @@ create table company_locations (
 
 create table resources (
 	resource_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	title varchar(100) not null
+	title varchar(50) not null
 );
 
 create table experiences (
@@ -48,7 +48,7 @@ create table salaries (
 
 create table skills (
 	skill_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	title varchar(100) not null
+	title varchar(1000) not null
 );
 
 create table responsibilities (
