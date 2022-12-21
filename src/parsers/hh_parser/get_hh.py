@@ -1,7 +1,7 @@
 import json
 import os
 
-from hh_subfun import get_links, get_vacancies
+from src.parsers.hh_parser.hh_subfun import get_links, get_vacancies
 from src.db.requests.DbLoader import DbLoader
 
 

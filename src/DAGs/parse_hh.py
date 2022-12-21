@@ -15,7 +15,10 @@ with DAG(
 
         import sys
         sys.path.append('home/borisov/Competencer')
+        sys.path.append('home/borisov/Competencer/src/parsers/hh_parser')
 
         from src.parsers.hh_parser.get_hh import get_hh
 
         get_hh()
+
+    hh_task()
