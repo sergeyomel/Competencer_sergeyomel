@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 class Parser():
     def __init__(self):
@@ -16,7 +17,11 @@ class Parser():
         self.html_elements = []
         self.job_id = []
         self.parsed_ids = []
-        self.driver = webdriver.Chrome()
+        self.chrome_options = Options()
+        self.chrome_options.add_argument('--no-sandbox')
+        self.chrome_options.add_argument('--headless')
+        self.driver = webdriver.Chrome(options=self.chrome_options)
+        self.ban_boolean = False
         self.job_url = 'https://www.linkedin.com/jobs/view/'
         self.url_with_filter = None
         self.curl = None
@@ -57,28 +62,42 @@ class Parser():
             password_field.send_keys(self.password)
 
             self.driver.find_element(By.CLASS_NAME, 'from__button--floating').click()
+
+            self.ban_boolean = False
+            self.t = time.localtime()
+            print(f'Auth complete. Time: {time.strftime("%H:%M:%S", self.t)}')
             time.sleep(random.randint(1, 2))
         except Exception as error:
+            self.auth()
             print(error, 'auth')
 
     def get_current_url(self, url):
         try:
             self.driver.get(url)
             elements = self.driver.find_elements(By.CLASS_NAME, 'jobs-search-results__list-item')
+            ban = self.driver.find_element(By.CLASS_NAME, 'jobs-search-no-results-banner__image')
+            if ban:
+                self.ban_boolean = True
+                return
             for element in elements:
                 temp = element.get_attribute('data-occludable-job-id')
                 if temp in self.job_id or temp in self.parsed_ids:
                     continue
                 else:
                     self.job_id.append(temp)
+
+            self.t = time.localtime()
+            print(f'Url: {url} get ID\'s. Time: {time.strftime("%H:%M:%S", self.t)}')
+
+            self.driver.find_element(By.CSS_SELECTOR, f"[aria-label='Page {self.current_link_value + 1}'").click()
             self.current_link_value += 1
-            self.driver.find_element(By.CSS_SELECTOR, f"[aria-label='Page {self.current_link_value}'").click()
             time.sleep(random.randint(1, 2))
             self.curl = self.driver.current_url
         except Exception as error:
+            self.get_current_url(url)
             print(error, 'get_current_url')
 
-    def get_data_from_link(self, job_id):
+    def get_data_from_link(self, job_id, ids):
         try:
             user = fake_useragent.UserAgent()
             data = requests.get(
@@ -112,16 +131,22 @@ class Parser():
                         }
                     }
                 )
+
+                self.t = time.localtime()
+                print(f'#{ids}, {job_id} complete. Time: {time.strftime("%H:%M:%S", self.t)}')
+
             elif data.status_code == 429:
                 print('Status code: ', data.status_code)
                 time.sleep(random.randint(10, 20))
-                self.get_data_from_link(job_id)
+                self.get_data_from_link(job_id, ids)
             else:
                 print('Status code: ', data.status_code)
-                time.sleep(random.randint(10, 20))
-                self.get_data_from_link(job_id)
+                time.sleep(random.randint(3, 5))
+                self.get_data_from_link(job_id, ids)
 
         except Exception as error:
+            time.sleep(random.randint(3, 5))
+            self.get_data_from_link(job_id, ids)
             print(error, 'get_data_from_link')
 
 
@@ -134,8 +159,28 @@ def LinkedIn():
     p.auth()
     for url in p.url_with_filter:
         p.curl = url
-        for i in range(1, 3):
-            p.get_current_url(url=p.curl)
+        for i in range(1, 40):
+            if p.current_link_value != 41:
+                p.get_current_url(url=p.curl)
+            else:
+                break
+            if p.ban_boolean:
+                break
+
+        if p.ban_boolean:
+            flag = input('Account was banned. Continue? [Y/N]')
+            if flag == 'Y':
+                p.driver.get('https://www.linkedin.com/m/logout/')
+                print('Change VPN connection and account.')
+                p.login = input('New login: ')
+                p.password = input('New password: ')
+                p.auth()
+            elif flag == 'N':
+                break
+            else:
+                continue
+
+        p.current_link_value = 1
 
     p.driver.quit()
 
@@ -145,8 +190,10 @@ def LinkedIn():
     except Exception as error:
         print(error)
 
+    ids = 0
     for id in p.job_id:
-        p.get_data_from_link(id)
+        p.get_data_from_link(id, ids)
+        ids += 1
 
     with open('linkedin.json', 'w', encoding='utf-8') as file:
         json.dump(p.html_elements, file, indent=4, ensure_ascii=False)
