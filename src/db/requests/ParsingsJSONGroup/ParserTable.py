@@ -36,3 +36,4 @@ class ParserTable(Writer):
 
         finally:
             cursor.close()
+            
