@@ -30,11 +30,10 @@ class DbLoader:
             company_locations = CompanyLocationsTable(connection)
             parsers_table = ParserTable(connection)
 
-            data = json.loads(data)
+            replace_data = data.replace("\'", "")
+            json_data = json.loads(replace_data)
 
-
-
-            for item in data:
+            for item in json_data:
                 platform_id = item["vacancy"]["id"]
 
                 cursor.execute(
