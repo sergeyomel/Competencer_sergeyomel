@@ -24,6 +24,9 @@ class ResponsibilitiesTable(Writer):
 
         try:
             for responsibility in responsibilities:
+                responsibility = responsibility.strip()
+                if not responsibility or len(responsibility) < 2:
+                    continue
                 cursor.execute(
                     f" SELECT responsibility_id FROM responsibilities "
                     f" WHERE title = '{responsibility}'"
@@ -37,18 +40,22 @@ class ResponsibilitiesTable(Writer):
                     )
                     execute_result = cursor.fetchone()
                 responsibility_id.append(execute_result[0])
+            if len(responsibility_id) == 0:
+                return
 
             insert_responsibility_data = []
             for responsibility_id in responsibility_id:
                 insert_responsibility_data.append((responsibility_id, self.vacancy_id))
 
+            insert_responsibility_data_set = set(insert_responsibility_data)
+
             insert = sql.SQL('INSERT INTO vacancy_responsibilities (responsibility_id, vacancy_id) VALUES {}').format(
-                sql.SQL(',').join(map(sql.Literal, insert_responsibility_data))
+                sql.SQL(',').join(map(sql.Literal, insert_responsibility_data_set))
             )
             cursor.execute(insert)
 
         except Exception as _ex:
-            logging.exception("ResponsibilitiesTable", exc_info=True)
+            logging.exception("ResponsibilitiesTable: ", exc_info=True)
             self.connection.close()
 
         finally:

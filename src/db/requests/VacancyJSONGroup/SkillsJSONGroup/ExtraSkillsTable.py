@@ -24,6 +24,9 @@ class ExtraSkillsTable(Writer):
 
         try:
             for skill in extra_skills:
+                skill = skill.strip()
+                if not skill or len(skill) < 2:
+                    continue
                 cursor.execute(
                     f" SELECT skill_id FROM skills "
                     f" WHERE title = '{skill}'"
@@ -37,13 +40,17 @@ class ExtraSkillsTable(Writer):
                     )
                     execute_result = cursor.fetchone()
                 skills_id.append(execute_result[0])
+            if len(skills_id) == 0:
+                return
 
             insert_extra_skills_data = []
             for skill_id in skills_id:
                 insert_extra_skills_data.append((skill_id, self.vacancy_id))
 
+            insert_extra_skills_data_set = set(insert_extra_skills_data)
+
             insert = sql.SQL('INSERT INTO extra_skills (skill_id, vacancy_id) VALUES {}').format(
-                sql.SQL(',').join(map(sql.Literal, insert_extra_skills_data))
+                sql.SQL(',').join(map(sql.Literal, insert_extra_skills_data_set))
             )
             cursor.execute(insert)
 
