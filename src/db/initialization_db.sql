@@ -48,12 +48,12 @@ create table salaries (
 
 create table skills (
 	skill_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	title varchar(1000) not null
+	title varchar(1500) not null
 );
 
 create table responsibilities (
 	responsibility_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	title varchar(250)
+	title varchar(1500)
 );
 
 create table vacancies (

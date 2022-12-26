@@ -30,11 +30,11 @@ class DbLoader:
             company_locations = CompanyLocationsTable(connection)
             parsers_table = ParserTable(connection)
 
-            replace_data = data.replace("\'", "")
+            replace_data = data.replace("'", "")
             json_data = json.loads(replace_data)
 
             for item in json_data:
-                platform_id = item["vacancy"]["id"]
+                platform_id = item['vacancy']['id']
 
                 cursor.execute(
                     f" SELECT COUNT(platform_id) "
