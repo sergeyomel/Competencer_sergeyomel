@@ -1,0 +1,1 @@
+pathHhAreasJSON = "areas.json"
