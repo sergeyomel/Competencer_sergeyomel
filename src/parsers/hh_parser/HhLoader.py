@@ -25,7 +25,6 @@ class HhLoader():
             with open(json_file_path, encoding='utf-8', mode='r') as f:
                 txt_data = f.read()
                 txt_data = txt_data.replace('\xa0', '').replace('&quot', '')
-            txt_data = '[' + txt_data[:-2] + ']'
 
             json_data = json.loads(txt_data)
 
