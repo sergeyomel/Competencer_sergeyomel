@@ -48,24 +48,21 @@ class HhParser():
 
     def vacancy_parse(self, data):
 
-        id = re.search(r'\d+', data)[0]
+        id = data['id']
+        name = data['name']
 
-        name = re.search(r'(?<=:).+',re.search(r'\],\s*"name":\s*.+?(?=,\s*")',data)[0])[0].replace('"','')
+        min_salary = '0'
+        max_salary = '0'
 
-        try:
-            salary = re.findall(r'\d+', re.search(r'"salary"\s*.+?(?=,\s*"type)', data)[0])
-            if len(salary) > 1:
-                min_salary = salary[0]
-                max_salary = salary[1]
-            else:
-                min_salary = salary[0]
-                max_salary = '0'
-        except:
-            min_salary = '0'
-            max_salary = '0'
+        if data['salary'] is not None:
+            if data['salary']['from'] is not None:
+                min_salary = data['salary']['from']
+            if data['salary']['to'] is not None:
+                max_salary = data['salary']['to']
 
         try:
-            experience = re.findall(r'\d+',re.search(r'"experience".+?(?=\s*})',data)[0])
+            experience = data['experience']['name']
+            experience = re.findall(r'\d+',experience)
             if len(experience)>1:
                 min_exp = experience[0]
                 max_exp = experience[1]
@@ -77,7 +74,8 @@ class HhParser():
             max_exp = '0'
 
         try:
-            description = re.sub(r'"description":\s*"','',re.search(r'(?<="contacts":\s*\w{4},\s*)"description":\s*".*?(?=(Обязанности|Задачи|Требования|Условия|",))',data, flags=re.IGNORECASE)[0])
+            description_json = data['description']
+            description = re.search(r'(?<="contacts":\s*\w{4},\s*)"description":\s*".*?(?=(Обязанности|Задачи|Требования|Условия|",))',description_json, flags=re.IGNORECASE)[0]
             description = self.del_tags(description)
             if len(description) == 0:
                 description = []
@@ -85,7 +83,7 @@ class HhParser():
             description = []
 
         try:
-            requirements = re.search(r'(?<=:).+',re.search(r'(?<=Требования).*?(?=(Обязанности|Условия|Задачи|",))', data,flags=re.IGNORECASE)[0])[0]
+            requirements = re.search(r'(?<=:).+',re.search(r'(?<=Требования).*?(?=(Обязанности|Условия|Задачи|",))', description_json,flags=re.IGNORECASE)[0])[0]
             requirements = self.del_tags(requirements).split(';')
             requirements = self.del_comma_in_list(requirements)
             del requirements[-1]
@@ -93,7 +91,7 @@ class HhParser():
             requirements = []
 
         try:
-            responsibilities = re.search(r'(?<=:).+', re.search(r'((?<=Обязанности)|(?<=Задачи)).*?(?=(Условия|Требования|",))', data,flags=re.IGNORECASE)[0])[0]
+            responsibilities = re.search(r'(?<=:).+', re.search(r'((?<=Обязанности)|(?<=Задачи)).*?(?=(Условия|Требования|",))', description_json,flags=re.IGNORECASE)[0])[0]
             responsibilities = self.del_tags(responsibilities).split(';')
             responsibilities = self.del_comma_in_list(responsibilities)
             del responsibilities[-1]
@@ -110,36 +108,28 @@ class HhParser():
             additional_skills = []
 
 
-        key_skills = re.search(r'key_skills":\s*.*?(?=\s*],\s*")', data)[0]
-        if key_skills == '[':
-            list_of_key_skills = []
-        else:
-            key_skills = re.findall(r'"name":\s*"\w+"',key_skills)
-            list_of_key_skills = []
-            for i in key_skills:
-                i = i.split(':')[1].replace('"','')
-                list_of_key_skills.append(i)
+        key_skills = data['key_skills']
+        skills = []
+        if len(key_skills) > 0:
+            for item in key_skills:
+                skills.append(item['name'])
+            key_skills = skills
 
-        try:
-            country = re.search(r'area":\s*.+?(?=,\s*")',data)[0].split(':')[2].replace('"','').replace(' ', '')
-            country = self.searcherCountry.get_country_name(country)
-        except:
-            country = ''
+        country = data['area']['id']
 
-        try:
-            city = re.search(r'"city":\s*.+?(?=\s*,)', data)[0].split(':')[1].replace('"', '')
-        except:
-            city = ''
+        country = self.searcherCountry.get_country_name(country)
 
-        try:
-            street = re.search(r'"street":\s*.+?(?=\s*,)', data)[0].split(':')[1].replace('"', '')
-        except:
-            street = ''
+        city = ''
+        street = ''
+        if data['address'] is not None:
+            if data['address']['city'] is not None:
+                city = data['address']['city']
+            if data['address']['street'] is not None:
+                street = data['address']['street']
 
+        employer = data['employer']['name']
 
-        employer = re.search(r'"name":\s*.+?(?=,\s*")', re.search(r'employer":\s*.+?(?=trusted)', data)[0])[0].split(':')[1].replace('"', '')
-
-        published = re.search(r'published_at":\s*.+?(?=T)', data)[0].split(':')[1].replace('"', '')
+        published = data['published_at'].replace('T', ' ')
 
         date_of_parsing = str(date.today())
 
@@ -172,7 +162,7 @@ class HhParser():
             "skills": {
               "necessary": requirements,
               "extra": additional_skills,
-              "key": list_of_key_skills
+              "key": key_skills
             },
             "responsibilities": responsibilities
           }
@@ -191,15 +181,12 @@ class HhParser():
         vacancies = []
 
         for json_item in json_data:
-            txt_item_data = json.dumps(json_item, ensure_ascii=False)
-            try:
-                vacancy_specialization = re.search(r'"specializations":\s\[{"id":\s".+?(?=,)', txt_item_data)[0].split(':')[2].replace('"','').replace(' ', '')
-                vacancy_professional = re.search(r'"professional_roles":\s*\[{"id":\s*"\d+', txt_item_data)[0].split(':')[2].replace('"','').replace(' ', '')
-            except:
-                continue
+
+            vacancy_specialization = json_item['specializations'][0]['id']
+            vacancy_professional = json_item['professional_roles'][0]['id']
 
             if vacancy_professional in self.professional_roles or vacancy_specialization == self.specialization:
-                vacancy = self.vacancy_parse(txt_item_data)
+                vacancy = self.vacancy_parse(json_item)
                 vacancies.append(vacancy)
 
         return vacancies
