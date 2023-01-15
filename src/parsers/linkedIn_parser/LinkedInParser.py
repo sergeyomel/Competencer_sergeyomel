@@ -21,18 +21,13 @@ def linkedin():
         ids_for_parse = []
 
         for k in key:
-            print('startim new key')
             ids_for_parse += grabber.id_grabber(keywords=k,
                                industries=industries,
                                location_name=location_name,
                                listed_at=listed_at,
                                limit=-1)
-
-            print('idi sobrani')
-            id_count = 0
+                               
             for id in ids_for_parse:
-                print('id #', id_count)
-                id_count += 1
                 if id not in old_ids:
                     temp = parser.vacancy_parse(id)
                     old_ids.append(id)
@@ -40,7 +35,6 @@ def linkedin():
                         continue
                     else:
                         current_parse_json.append(temp)
-                        print('CPJ: ', temp)
                 else:
                     continue
 
