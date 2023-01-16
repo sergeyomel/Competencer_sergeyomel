@@ -6,9 +6,8 @@ password = ""
 job_url = "https://www.linkedin.com/jobs/view/"
 
 "Configuration for search necessary jobs"
-industries = "IT Services and IT Consulting"
 location_name = "United States"
-listed_at = 2592000
+listed_at = 86400
 keywords = [
     "Check-list",
     "Test case",

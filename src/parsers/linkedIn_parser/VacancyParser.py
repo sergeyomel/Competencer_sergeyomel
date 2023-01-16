@@ -15,7 +15,7 @@ class VacancyParser:
     def matching_ul(self, keyword, text):
         try:
             pattern = f'{keyword}.+?(<ul>.+?)</ul>'
-            temp = re.sub('<li>|</li>|<ul>|</ul>|<br/>', '^',
+            temp = re.sub('<li>|</li>|<ul>|</ul>|<br/>|<span>|</span>|<div>|</div>', '^',
                           re.findall(pattern, text.lower(), re.M | re.S)[0]).split('^')
             return [e.replace('&amp', '') for e in temp if e]
         except Exception as Error:
@@ -88,6 +88,14 @@ class VacancyParser:
                     description = ''
 
                 try:
+                    salary_string = re.findall('(\$\d+.\d+)', data.text)
+                    min_salary = salary_string[0]
+                    max_salary = salary_string[1]
+                except Exception as Error:
+                    logging.exception(Error)
+                    min_salary = '0'
+                    max_salary = '0'
+                try:
                     skills_keyword = 'skills'
                     skills = self.matching_ul(skills_keyword, str(full_vacancy_description))
                     if skills is None:
@@ -131,6 +139,10 @@ class VacancyParser:
                         'title': title,
                         'publicDate': public_date,
                         'description': description
+                    },
+                    'salary': {
+                        'min': min_salary,
+                        'max': max_salary
                     },
                     'skills': {
                         'skills': skills,

@@ -15,7 +15,7 @@ class IdGrabber:
     def id_grabber(
             self,
             keywords=None,
-            industries=None,
+            industries="IT Services and IT Consulting",
             location_name=None,
             listed_at=86400,
             limit=-1

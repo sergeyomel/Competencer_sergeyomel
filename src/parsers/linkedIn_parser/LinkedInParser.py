@@ -22,11 +22,10 @@ def linkedin():
 
         for k in key:
             ids_for_parse += grabber.id_grabber(keywords=k,
-                               industries=industries,
-                               location_name=location_name,
-                               listed_at=listed_at,
-                               limit=-1)
-                               
+                                                location_name=location_name,
+                                                listed_at=listed_at,
+                                                limit=10)
+
             for id in ids_for_parse:
                 if id not in old_ids:
                     temp = parser.vacancy_parse(id)
