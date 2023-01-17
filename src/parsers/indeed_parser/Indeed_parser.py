@@ -6,9 +6,6 @@ from urllib.parse import urlencode
 from datetime import datetime
 
 
-SCRAPEOPS_API_KEY = 'c9e87824-c5e9-42ac-914c-509da49d116e'
-
-
 class Indeed_parser:
     def __init__(self, params = None):
         if params is None:
@@ -18,6 +15,7 @@ class Indeed_parser:
                 'json_size': 100
             }
         self.params = params
+        self.SCRAPEOPS_API_KEY = '7cb6fee1-8623-442b-b044-b8745718b7e4'
         self.vacancy_list = []
         self.keywords = ['python', 'java', 'c/c++', 'c#', 'android', 'kotlin', 'ios', 'swift', 'objective-c',
                         'rust', 'scala', 'vr/ar', 'backend', 'frontend', 'mobile', 'react', 'flutter', 'sql',
@@ -28,6 +26,27 @@ class Indeed_parser:
         self.pages = params['pages']
         self.json_size = params['json_size']
         self.count = 0
+
+
+    def get_new_api_key(self):
+        try:
+            with open('api_keys.txt', 'r') as file:
+                api_keys = file.readlines()
+                api_keys = list(filter(lambda x: len(x)>0, api_keys))
+                if self.SCRAPEOPS_API_KEY in api_keys:
+                    api_keys.remove(self.SCRAPEOPS_API_KEY)
+                    if len(api_keys)>0:
+                        self.SCRAPEOPS_API_KEY = api_keys[0]
+                    else:
+                        raise Exception("file with API keys is empty")
+        except Exception as e:
+            print(e)
+        try:
+            with open('api_keys.txt', 'r') as file:
+                text = "\n".join(api_keys)
+                file.write(text)
+        except Exception as e:
+            print(e)
 
 
     def get_json_filename(self):
@@ -235,7 +254,7 @@ class Indeed_parser:
 
 
     def scrapeops_url(self, url):
-        payload = {'api_key': SCRAPEOPS_API_KEY, 'url': url, 'country': 'us'}
+        payload = {'api_key': self.SCRAPEOPS_API_KEY, 'url': url, 'country': 'us'}
         proxy_url = 'https://proxy.scrapeops.io/v1/?' + urlencode(payload)
         return proxy_url
 
@@ -268,7 +287,7 @@ class Indeed_parser:
                     if len(result) > 0:
                         json_blob = json.loads(result[0])
                         jobs_list = json_blob['metaData']['mosaicProviderJobCardsModel']['results']
-                        for index, job in enumerate(jobs_list):
+                        for _, job in enumerate(jobs_list):
                             if job.get('jobkey') is not None:
                                 vacancy_url = 'https://www.indeed.com/m/basecamp/viewjob?viewtype=embedded&jk=' + job.get('jobkey')
                                 proxy_vacancy_url = self.scrapeops_url(vacancy_url)
@@ -286,7 +305,8 @@ class Indeed_parser:
                                                 self.count = 0
                                                 self.vacancy_list = []
         except Exception as e:
-            print(e)
+            if e == "Server disconnected":
+                self.get_new_api_key()
 
 
     async def create_tasks(self):
