@@ -181,9 +181,14 @@ class HhParser():
         vacancies = []
 
         for json_item in json_data:
+            vacancy_specialization = json_item['specializations']
+            vacancy_specialization = None if len(vacancy_specialization) == 0 else vacancy_specialization[0]['id']
 
-            vacancy_specialization = json_item['specializations'][0]['id']
-            vacancy_professional = json_item['professional_roles'][0]['id']
+            vacancy_professional = json_item['professional_roles']
+            vacancy_professional = None if len(vacancy_professional) == 0 else vacancy_professional[0]['id']
+
+            if vacancy_specialization is None and vacancy_professional is None:
+                continue
 
             if vacancy_professional in self.professional_roles or vacancy_specialization == self.specialization:
                 vacancy = self.vacancy_parse(json_item)
