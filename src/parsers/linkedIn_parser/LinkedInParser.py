@@ -1,48 +1,41 @@
-from IdGrabber import IdGrabber
+from DictGrabber import DictGrabber
 from VacancyParser import VacancyParser
 from data.config import *
+import asyncio
 import json
+import time
 import logging
 
-def set_old_ids():
-    with open('data/ParsedIds.json', encoding='utf-8') as file:
-        return json.loads(file.read())
 
 def linkedin():
     try:
-        grabber = IdGrabber()
+        logging.basicConfig(filename='main',
+                            filemode='a',
+                            format='%(asctime)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
+        grabber = DictGrabber()
         parser = VacancyParser()
-
-        old_ids = set_old_ids()
 
         key = (element for element in keywords)
 
-        current_parse_json = []
-        ids_for_parse = []
-
         for k in key:
-            ids_for_parse += grabber.id_grabber(keywords=k,
-                                                location_name=location_name,
-                                                listed_at=listed_at,
-                                                limit=10)
+            dicts_for_parse = grabber.dict_grabber(keywords=k,
+                                                   location_name=location_name,
+                                                   listed_at=listed_at,
+                                                   limit=-1)
 
-            for id in ids_for_parse:
-                if id not in old_ids:
-                    temp = parser.vacancy_parse(id)
-                    old_ids.append(id)
-                    if temp == 0 or temp is None:
-                        continue
-                    else:
-                        current_parse_json.append(temp)
-                else:
-                    continue
+            asyncio.run(parser.task_gather(dicts_for_parse))
 
-            with open('data/ParsedIds.json', 'w', encoding='utf-8') as file:
-                json.dump(old_ids, file)
-            with open('data/test.json', 'w', encoding='utf-8') as file:
-                json.dump(current_parse_json, file, indent=4, ensure_ascii=False)
+        with open('data/ParsedIds.json', 'w', encoding='utf-8') as file:
+            json.dump(parser.old_ids, file)
+
+        current_time = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+        with open(f'data/parse_{current_time}.json', 'w', encoding='utf-8') as file:
+            json.dump(parser.vanancy_data, file, indent=4, ensure_ascii=False)
 
     except Exception as Error:
         logging.exception(Error)
+
 
 linkedin()
