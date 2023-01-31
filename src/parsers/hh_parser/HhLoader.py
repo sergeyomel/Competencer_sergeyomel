@@ -1,6 +1,7 @@
 import json
 import os
-import numpy
+from math import ceil
+
 from multiprocessing import Process
 
 from src.db.requests.DbLoader import DbLoader
@@ -23,7 +24,9 @@ class HhLoader():
 
     def get_core_file_chains(self, path, count_cores):
         json_files = self.get_json_files(path)
-        core_file_chains = list(map(lambda item: list(item), numpy.array_split(json_files, count_cores)))
+
+        part_len = ceil(len(json_files) / count_cores)
+        core_file_chains = [json_files[part_len * k:part_len * (k + 1)] for k in range(count_cores)]
 
         return core_file_chains
 
