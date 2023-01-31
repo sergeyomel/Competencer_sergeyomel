@@ -25,7 +25,6 @@ def linkedin():
                                                    listed_at=listed_at,
                                                    limit=-1)
 
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
             asyncio.run(parser.task_gather(dicts_for_parse))
 
         with open('data/ParsedIds.json', 'w', encoding='utf-8') as file:
