@@ -305,7 +305,7 @@ class IndeedParser:
         return "https://www.indeed.com/jobs?" + urlencode(parameters)
 
     def get_vacancies(self):
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        #asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         asyncio.run(self.create_tasks())
         if len(self.vacancy_list) > 0:
             self.load_to_json()
