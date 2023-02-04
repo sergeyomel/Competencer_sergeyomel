@@ -134,7 +134,9 @@ class VacancyParser:
                             },
                             "salary": {
                                 "min": job_dict['minSalary'],
-                                "max": job_dict['maxSalary']
+                                "max": job_dict['maxSalary'],
+                                'currency': 'USD',
+                                'gross': '1'
                             },
                             "skills": {
                                 "necessary": skills,
