@@ -1,7 +1,3 @@
-import logging
-
-import psycopg2
-
 from src.db.requests.Writer import Writer
 
 
@@ -33,8 +29,7 @@ class LocationsTable(Writer):
             return execute_result[0]
 
         except Exception as _ex:
-            logging.exception("LocationsTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

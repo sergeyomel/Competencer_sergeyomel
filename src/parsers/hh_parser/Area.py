@@ -1,7 +1,6 @@
 import json
 
-from src.parsers.hh_parser.data.config import pathHhAreasJSON
-
+from src.parsers.hh_parser.config import pathHhAreasJSON
 
 class Areas():
     areas = ""

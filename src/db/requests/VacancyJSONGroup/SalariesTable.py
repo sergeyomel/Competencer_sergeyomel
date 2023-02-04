@@ -11,30 +11,48 @@ class SalariesTable(Writer):
         Writer.__init__(self, connection)
 
     def insert(self, data):
-        min = data['min']
-        max = data['max']
 
         cursor = self.connection.cursor()
 
         try:
+            if data['currency'] is None:
+                cursor.execute(
+                    """
+                    SELECT salary_id FROM salaries
+                    WHERE lower_threshold = %s
+                    AND upper_threshold = %s
+                    AND currency is null
+                    AND gross is null
+                    """,
+                    (data['min'], data['max'])
+                )
+                return cursor.fetchone()[0]
+
             cursor.execute(
-                f" SELECT salary_id FROM salaries "
-                f" WHERE lower_threshold = '{min}' "
-                f" AND upper_threshold = '{max}' "
+                """
+                SELECT salary_id FROM salaries
+                WHERE lower_threshold = %s
+                AND upper_threshold = %s
+                AND currency = %s
+                AND gross = %s
+                """,
+                (data['min'], data['max'], data['currency'], data['gross'])
             )
             execute_result = cursor.fetchone()
             if execute_result is None:
                 cursor.execute(
-                    f" INSERT INTO salaries (lower_threshold, upper_threshold) "
-                    f" VALUES ('{min}', '{max}') "
-                    f" RETURNING salary_id"
+                    """
+                    INSERT INTO salaries  (lower_threshold, upper_threshold, currency, gross)
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING salary_id
+                    """,
+                    (data['min'], data['max'], data['currency'], data['gross'])
                 )
                 execute_result = cursor.fetchone()
             return execute_result[0]
 
         except Exception as _ex:
-            logging.exception("SalariesTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

@@ -43,7 +43,9 @@ create table experiences (
 create table salaries (
 	salary_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	lower_threshold varchar(10),
-	upper_threshold varchar(10)
+	upper_threshold varchar(10),
+	currency varchar(10),
+	gross boolean
 );
 
 create table skills (
@@ -120,3 +122,4 @@ create table parsings (
 insert into resources (title) values ('hh');
 insert into resources (title) values ('linkedin');
 insert into resources (title) values ('indeed');
+insert into salaries  (lower_threshold, upper_threshold, currency, gross) VALUES ('0', '0', NULL, NULL)

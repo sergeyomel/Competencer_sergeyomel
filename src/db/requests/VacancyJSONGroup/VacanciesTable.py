@@ -1,14 +1,9 @@
-import logging
-
 from src.db.requests.Writer import Writer
-
 
 class VacanciesTable(Writer):
 
     def __init__(self, connection):
         Writer.__init__(self, connection)
-
-        logging.basicConfig(level=logging.INFO, filename="dataload.log", filemode="w")
 
     def insert(self, data):
 
@@ -27,8 +22,7 @@ class VacanciesTable(Writer):
             return execute_result[0]
 
         except Exception as _ex:
-            logging.exception("VacanciesTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

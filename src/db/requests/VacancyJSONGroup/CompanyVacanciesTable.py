@@ -29,6 +29,8 @@ class CompanyVacanciesTable(Writer):
 
         publication_date = data['publicDate']
         description = data['description']
+        if len(description) > 1000:
+            description = ''
 
         vacancy_id = self.vacancies_table.insert({"title": data['title'], "id": data['id']})
         experience_id = self.experience_table.insert(data['workExp'])
@@ -58,8 +60,7 @@ class CompanyVacanciesTable(Writer):
             return execute_result[0]
 
         except Exception as _ex:
-            logging.exception("CompanyVacanciesTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

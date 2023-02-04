@@ -1,9 +1,4 @@
-import logging
-
-import psycopg2
-
 from src.db.requests.Writer import Writer
-
 
 class CompaniesTable(Writer):
 
@@ -30,8 +25,7 @@ class CompaniesTable(Writer):
             return execute_command[0]
 
         except Exception as _ex:
-            logging.exception("CompaniesTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()
