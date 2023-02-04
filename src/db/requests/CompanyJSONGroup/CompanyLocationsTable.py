@@ -1,5 +1,3 @@
-import logging
-
 from src.db.requests.CompanyJSONGroup.CompaniesTable import CompaniesTable
 from src.db.requests.CompanyJSONGroup.LocationsTable import LocationsTable
 from src.db.requests.Writer import Writer
@@ -27,8 +25,7 @@ class CompanyLocationsTable(Writer):
             )
 
         except Exception as _ex:
-            logging.exception("CompanyLocationsTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

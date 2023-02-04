@@ -56,8 +56,7 @@ class KeySkillsTable(Writer):
             cursor.execute(insert)
 
         except Exception as _ex:
-            logging.exception("KeySkillsTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

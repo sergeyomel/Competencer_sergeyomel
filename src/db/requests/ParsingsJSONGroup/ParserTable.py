@@ -1,7 +1,5 @@
 import logging
 
-import psycopg2
-
 from src.db.requests.VacancyJSONGroup.CompanyVacanciesTable import CompanyVacanciesTable
 from src.db.requests.Writer import Writer
 
@@ -31,8 +29,7 @@ class ParserTable(Writer):
             )
 
         except Exception as _ex:
-            logging.exception("ParserTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

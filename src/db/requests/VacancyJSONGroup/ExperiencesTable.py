@@ -34,8 +34,7 @@ class ExperiencesTable(Writer):
             return execute_result[0]
 
         except Exception as _ex:
-            logging.exception("ExperiencesTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

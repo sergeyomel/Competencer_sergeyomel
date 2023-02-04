@@ -1,7 +1,7 @@
 import json
 import logging
-
 import psycopg2
+from datetime import datetime
 
 from src.db.requests.CompanyJSONGroup.CompanyLocationsTable import CompanyLocationsTable
 from src.db.requests.ParsingsJSONGroup.ParserTable import ParserTable
@@ -13,9 +13,9 @@ from src.db.config import host, user, password, db_name
 class DbLoader:
 
     def __init__(self):
-        pass
+        logging.basicConfig(filename="DataBaseExceptionLog.log", filemode="a", level=logging.INFO, encoding='utf-8')
 
-    def load(self, data):
+    def load(self, json_data):
 
         try:
             connection = psycopg2.connect(
@@ -30,21 +30,27 @@ class DbLoader:
             company_locations = CompanyLocationsTable(connection)
             parsers_table = ParserTable(connection)
 
-            replace_data = data.replace("'", "")
-            json_data = json.loads(replace_data)
+            json_data = json.loads(json.dumps(json_data).replace("'", ""))
 
             for item in json_data:
-                platform_id = item['vacancy']['id']
+                try:
+                    platform_id = item['vacancy']['id']
 
-                cursor.execute(
-                    f" SELECT COUNT(platform_id) "
-                    f" FROM vacancies"
-                    f" WHERE platform_id = '{platform_id}' "
-                )
-                execute_result = cursor.fetchone()
-                if(execute_result[0] == 0):
-                    company_locations.insert(item['company'])
-                    parsers_table.insert(item)
+                    cursor.execute(
+                        f" SELECT COUNT(platform_id) "
+                        f" FROM vacancies"
+                        f" WHERE platform_id = '{platform_id}' "
+                    )
+                    execute_result = cursor.fetchone()
+                    if(execute_result[0] == 0):
+                        company_locations.insert(item['company'])
+                        parsers_table.insert(item)
+
+                except Exception as _ex:
+                    logging.info("  Date: {}".format(datetime.now()))
+                    logging.exception("DbLoader",  exc_info=True)
+                    logging.info(item)
+                    logging.info("------------------------------------------------------------------------------------")
 
             connection.close()
 

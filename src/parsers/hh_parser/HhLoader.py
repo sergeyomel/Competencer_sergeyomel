@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from math import ceil
 
 from multiprocessing import Process
@@ -46,7 +47,7 @@ class HhLoader():
 
             vacancies = hhparser.get_vacancy_json(json_data)
 
-            dbloader.load(json.dumps(vacancies, ensure_ascii=False))
+            dbloader.load(vacancies)
 
     def load(self, path, count_cores = 3):
 

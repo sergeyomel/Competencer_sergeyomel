@@ -55,8 +55,7 @@ class ResponsibilitiesTable(Writer):
             cursor.execute(insert)
 
         except Exception as _ex:
-            logging.exception("ResponsibilitiesTable: ", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()
