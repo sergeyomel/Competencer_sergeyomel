@@ -15,39 +15,20 @@ class SalariesTable(Writer):
         cursor = self.connection.cursor()
 
         try:
-            if data['currency'] is None:
-                cursor.execute(
-                    """
-                    SELECT salary_id FROM salaries
-                    WHERE lower_threshold = %s
-                    AND upper_threshold = %s
-                    AND currency is null
-                    AND gross is null
-                    """,
-                    (data['min'], data['max'])
-                )
-                return cursor.fetchone()[0]
-
-            cursor.execute(
-                """
-                SELECT salary_id FROM salaries
-                WHERE lower_threshold = %s
-                AND upper_threshold = %s
-                AND currency = %s
-                AND gross = %s
-                """,
-                (data['min'], data['max'], data['currency'], data['gross'])
-            )
+            query = "SELECT salary_id FROM salaries WHERE lower_threshold = {} AND upper_threshold = {} AND currency {} AND gross {}".format(
+                "'" + str(data['min']) + "'",
+                "'" + str(data['max']) + "'",
+                "is null" if data['currency'] is None else "= '{}'".format(data['currency']),
+                "is null" if data['gross'] is None else "= {}".format(data['gross']))
+            cursor.execute(query)
             execute_result = cursor.fetchone()
             if execute_result is None:
-                cursor.execute(
-                    """
-                    INSERT INTO salaries  (lower_threshold, upper_threshold, currency, gross)
-                    VALUES (%s, %s, %s, %s)
-                    RETURNING salary_id
-                    """,
-                    (data['min'], data['max'], data['currency'], data['gross'])
-                )
+                query = "INSERT INTO salaries  (lower_threshold, upper_threshold, currency, gross) VALUES ({}, {}, {}, {}) RETURNING salary_id".format(
+                    "'" + str(data['min']) + "'",
+                    "'" + str(data['max']) + "'",
+                    "NULL" if data['currency'] is None else "'{}'".format(data['currency']),
+                    "NULL" if data['gross'] is None else "'{}'".format(data['gross']))
+                cursor.execute(query)
                 execute_result = cursor.fetchone()
             return execute_result[0]
 

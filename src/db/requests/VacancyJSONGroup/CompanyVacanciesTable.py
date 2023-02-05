@@ -39,7 +39,7 @@ class CompanyVacanciesTable(Writer):
         skills_loader = SkillsLoader(self.connection, vacancy_id)
         responsibility_table = ResponsibilitiesTable(self.connection, vacancy_id)
         skills_loader.insert(data['skills'])
-        responsibility_table.insert(data)
+        responsibility_table.insert(data['responsibilities'])
 
         cursor = self.connection.cursor()
 
