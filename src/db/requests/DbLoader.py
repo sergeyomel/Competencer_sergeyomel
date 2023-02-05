@@ -47,17 +47,8 @@ class DbLoader:
             for item in json_data:
                 if item['vacancy']['id'] in ids_not_in_db:
                     try:
-                        platform_id = item['vacancy']['id']
-
-                        cursor.execute(
-                            f" SELECT COUNT(platform_id) "
-                            f" FROM vacancies"
-                            f" WHERE platform_id = '{platform_id}' "
-                        )
-                        execute_result = cursor.fetchone()
-                        if(execute_result[0] == 0):
-                            company_locations.insert(item['company'])
-                            parsers_table.insert(item)
+                        company_locations.insert(item['company'])
+                        parsers_table.insert(item)
 
                         connection.commit()
 
