@@ -59,9 +59,9 @@ class HhParser():
                     if len(description[index]) > 1000:
                         description[index] = description[index][:1000]
             if len(description) == 0:
-                description = []
+                description = ""
         except:
-            description = []
+            description = ""
 
         return description
 
@@ -72,7 +72,7 @@ class HhParser():
             requirements = DataHandler.del_comma_in_list(requirements)
             del requirements[-1]
         except:
-            requirements = []
+            requirements = ""
 
         return requirements
 
@@ -83,7 +83,7 @@ class HhParser():
             additional_skills = DataHandler.del_comma_in_list(additional_skills)
             del additional_skills[-1]
         except:
-            additional_skills = []
+            additional_skills = ""
 
         return additional_skills
 
@@ -92,9 +92,8 @@ class HhParser():
             responsibilities = re.search(r'(?<=:).+', re.search(r'((?<=Обязанности)|(?<=Задачи)).*?(?=(Условия|Требования|",))', data,flags=re.IGNORECASE)[0])[0]
             responsibilities = DataHandler.del_tags(responsibilities).split(';')
             responsibilities = DataHandler.del_comma_in_list(responsibilities)
-            del responsibilities[-1]
         except:
-            responsibilities = []
+            responsibilities = ""
 
         return responsibilities
 

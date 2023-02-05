@@ -14,6 +14,6 @@ class SkillsLoader(Writer):
         self.key_skill_table = KeySkillsTable(connection, vacancy_id)
 
     def insert(self, data):
-        self.necessary_skill_table.insert(data)
-        self.extra_skill_table.insert(data)
-        self.key_skill_table.insert(data)
+        self.necessary_skill_table.insert(data['necessary'])
+        self.extra_skill_table.insert(data['extra'])
+        self.key_skill_table.insert(data['key'])

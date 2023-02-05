@@ -16,17 +16,7 @@ class SalariesTable(Writer):
 
         try:
             if data['currency'] is None:
-                cursor.execute(
-                    """
-                    SELECT salary_id FROM salaries
-                    WHERE lower_threshold = %s
-                    AND upper_threshold = %s
-                    AND currency is null
-                    AND gross is null
-                    """,
-                    (data['min'], data['max'])
-                )
-                return cursor.fetchone()[0]
+                return 1
 
             cursor.execute(
                 """

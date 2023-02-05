@@ -20,8 +20,9 @@ class DataHandler:
     @staticmethod
     def del_comma_in_list(data):
         new_list = []
-        for i in data:
-            str = i.replace(re.search(r'.*?(?=[A-Za-zА-Яа-я])', i)[0], '')
-            new_list.append(str)
+        for item in data:
+            if len(item) > 1:
+                str = item.replace(re.search(r'.*?(?=[A-Za-zА-Яа-я])', item)[0], '',1)
+                new_list.append(str)
 
         return new_list
