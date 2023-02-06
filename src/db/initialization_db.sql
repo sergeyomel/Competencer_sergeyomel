@@ -122,4 +122,6 @@ create table parsings (
 insert into resources (title) values ('hh');
 insert into resources (title) values ('linkedin');
 insert into resources (title) values ('indeed');
-insert into salaries  (lower_threshold, upper_threshold, currency, gross) VALUES ('0', '0', NULL, NULL)
+
+ALTER TABLE skills ADD CONSTRAINT skill_const UNIQUE (title);
+ALTER TABLE responsibilities ADD CONSTRAINT responsibility_const UNIQUE (title);
