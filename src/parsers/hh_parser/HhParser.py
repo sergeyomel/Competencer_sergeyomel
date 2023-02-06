@@ -168,7 +168,6 @@ class HhParser():
             "responsibilities": responsibilities
           }
         }
-        #item = json.dumps(item, ensure_ascii = False)
         return item
 
     def get_vacancy_json(self, json_data):
