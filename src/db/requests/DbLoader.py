@@ -3,6 +3,7 @@ import logging
 import psycopg2
 from datetime import datetime
 from psycopg2 import sql
+import time
 
 from src.db.requests.CompanyJSONGroup.CompanyLocationsTable import CompanyLocationsTable
 from src.db.requests.ParsingsJSONGroup.ParserTable import ParserTable
@@ -24,6 +25,9 @@ class DbLoader:
             database=db_name,
             password=password
         )
+        count_rollback = 0
+        count_insert_data = 0
+
         connection.autocommit = False
         cursor = connection.cursor()
 
@@ -44,12 +48,14 @@ class DbLoader:
             contain_db_platform_id = set([id[0] for id in cursor.fetchall()])
             ids_not_in_db = list(receiced_platform_id.difference(contain_db_platform_id))
 
+            start = time.time()
             for item in json_data:
                 if item['vacancy']['id'] in ids_not_in_db:
                     try:
                         company_locations.insert(item['company'])
                         parsers_table.insert(item)
 
+                        count_insert_data += 1
                         connection.commit()
 
                     except Exception as _ex:
@@ -58,13 +64,15 @@ class DbLoader:
                         logging.info("  Date: {}. Connection rollback.".format(datetime.now()))
                         logging.exception("DbLoader: load json_item",  exc_info=True)
                         logging.info(item)
-                        logging.info("------------------------------------------------------------------------------------")
+                        logging.info("--------------------------------------------------------------------------------")
 
             connection.close()
 
-            logging.info("Data insert was successful.")
+            end = time.time() - start
+            logging.info(f"Data insert was successful. Time: {end}, Count insert JSON item: {count_insert_data}, Count rollback: {count_rollback}")
 
         except Exception as _ex:
+            count_rollback += 1
             logging.info(" Date: {}".format(datetime.now()))
             logging.exception("DbLoader", exc_info=True)
             logging.info(" JSON data:")
