@@ -7,17 +7,13 @@ class VacanciesTable(Writer):
 
     def insert(self, data):
 
-        title = data['title']
-        platform_id = data['id']
-
         cursor = self.connection.cursor()
-
         try:
-            cursor.execute(
-                f" INSERT INTO vacancies (title, platform_id) "
-                f" VALUES ('{title}', '{platform_id}')"
-                f" RETURNING vacancy_id"
-            )
+            query = """INSERT INTO vacancies (title, platform_id)
+                       VALUES ('{}', '{}')
+                       RETURNING vacancy_id
+                    """.format(data['title'], data['id'])
+            cursor.execute(query)
             execute_result = cursor.fetchone()
             return execute_result[0]
 

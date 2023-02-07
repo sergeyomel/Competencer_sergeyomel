@@ -123,5 +123,17 @@ insert into resources (title) values ('hh');
 insert into resources (title) values ('linkedin');
 insert into resources (title) values ('indeed');
 
-ALTER TABLE skills ADD CONSTRAINT skill_const UNIQUE (title);
+ALTER TABLE companies ADD CONSTRAINT company_name_const UNIQUE (company_name);
+ALTER TABLE locations ADD CONSTRAINT location_const UNIQUE (country, city, street);
+ALTER TABLE parsings ADD CONSTRAINT parsing_const UNIQUE (resource_parsing_id, parsing_date, company_vacancy_id);
 ALTER TABLE responsibilities ADD CONSTRAINT responsibility_const UNIQUE (title);
+ALTER TABLE skills ADD CONSTRAINT skill_const UNIQUE (title);
+ALTER TABLE experiences ADD CONSTRAINT experience_const UNIQUE (exp_min, exp_max);
+
+CREATE INDEX skill_index ON skills (title);
+CREATE INDEX responsibility_index ON responsibilities (title);
+CREATE INDEX company_index ON companies (company_name);
+CREATE INDEX location_index ON locations (country, city, street);
+CREATE INDEX experience_index ON experiences (exp_min, exp_max);
+CREATE INDEX salary_index ON salaries (lower_threshold, upper_threshold, currency, gross);
+CREATE INDEX vacancy_index ON vacancies (platform_id);
