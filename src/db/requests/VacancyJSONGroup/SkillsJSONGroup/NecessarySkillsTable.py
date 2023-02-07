@@ -9,7 +9,7 @@ class NecessarySkillsTable(Writer):
         self.vacancy_id = vacancy_id
 
     def insert(self, data):
-        necessary_skills = set([item for item in data if len(item) < 1500 and len(item.strip()) > 2])
+        necessary_skills = set([item.strip() for item in data if len(item) < 1500 and len(item.strip()) > 2])
         if len(necessary_skills) == 0:
             return
 
