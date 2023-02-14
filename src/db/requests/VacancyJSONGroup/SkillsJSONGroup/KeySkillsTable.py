@@ -10,7 +10,7 @@ class KeySkillsTable(Writer):
         self.vacancy_id = vacancy_id
 
     def insert(self, data):
-        key_skills = set([item for item in data if len(item) < 1500 and len(item.strip()) > 2])
+        key_skills = set([item.strip() for item in data if len(item) < 1500 and len(item.strip()) > 2])
         if len(key_skills) == 0:
             return
 

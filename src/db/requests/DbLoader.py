@@ -36,6 +36,8 @@ class DbLoader:
             return
 
         try:
+            start = time.time()
+
             company_locations = CompanyLocationsTable(connection)
             parsers_table = ParserTable(connection)
 
@@ -48,7 +50,6 @@ class DbLoader:
             contain_db_platform_id = set([id[0] for id in cursor.fetchall()])
             ids_not_in_db = list(receiced_platform_id.difference(contain_db_platform_id))
 
-            start = time.time()
             for item in json_data:
                 if item['vacancy']['id'] in ids_not_in_db:
                     try:

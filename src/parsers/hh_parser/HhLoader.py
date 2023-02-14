@@ -3,7 +3,7 @@ import os
 import time
 from math import ceil
 
-from multiprocessing import Process
+from billiard import Process
 
 from src.db.requests.DbLoader import DbLoader
 from src.parsers.hh_parser.HhParser import HhParser
@@ -51,6 +51,9 @@ class HhLoader():
 
     def load(self, path, count_cores = 3):
 
+        print("start")
+        start = time.time()
+
         core_file_chains = self.get_core_file_chains(path, count_cores)
 
         processes = []
@@ -62,3 +65,6 @@ class HhLoader():
 
         for process in processes:
             process.join()
+
+        print("end")
+        print(time.time() - start)

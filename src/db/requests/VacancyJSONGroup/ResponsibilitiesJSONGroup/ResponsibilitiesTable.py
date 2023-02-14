@@ -10,7 +10,7 @@ class ResponsibilitiesTable(Writer):
         self.vacancy_id = vacancy_id
 
     def insert(self, data):
-        responsibilities = set([item for item in data if len(item) < 1500 and len(item.strip()) > 2])
+        responsibilities = set([item.strip() for item in data if len(item) < 1500 and len(item.strip()) > 2])
         if len(responsibilities) == 0:
             return
 
