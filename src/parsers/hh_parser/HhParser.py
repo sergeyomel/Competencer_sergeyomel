@@ -1,147 +1,148 @@
-import json
-
-import requests, re
+import json, re
 from datetime import date
 
 from src.db.requests.DbLoader import DbLoader
 from src.parsers.hh_parser.Area import Areas
-
+from DataHandler import DataHandler
+import config
 
 class HhParser():
 
     def __init__(self):
         self.searcherCountry = Areas()
-        self.professional_roles = ['156', '160', '10', '12', '150', '25', '165', '34', '36', '73', '155', '96', '164',
-                                   '104', '157', '107', '112', '113', '148', '114', '116', '121', '124', '125', '126']
-        self.specialization = '1.221'
-        self.dbloader = DbLoader()
 
-    def del_tags(self, data):
-        str_symbols = ['\\r', '\\n','</li>']
+    def get_salary(self, data):
+        json_item =  {
+                'min': '0',
+                'max': '0',
+                'currency': None,
+                'gross': None
+                }
 
-        for i in str_symbols:
-            if i == '</li>':
-                data = data.replace(i,';')
-            elif i == '\\n':
-                data = data.replace(i, ' ')
-            elif i == '\\r':
-                data = data.replace(i,'')
+        if data is not None:
+            if data['from'] is not None:
+                json_item['min'] = str(data['from'])
+            if data['to'] is not None:
+                json_item['max'] = str(data['to'])
+            if data['currency'] is not None:
+                json_item['currency'] = data['currency']
+            if data['gross'] is not None:
+                json_item['gross'] = str(data['gross'])
 
-        data = re.sub(r'(?<=<).+?(?=>)', '', data).replace('<>', '')
-        return data
+        return json_item
 
-    def del_comma_in_list(self, data):
-        new_list = []
-        for i in data:
-            if i == "":
-                continue
-            if i[1] == '-' or i[0] == ':':
-                i = i[2:]
-            i = re.sub(r'\s{2,}'," ", i)
-            if i[-1] == ',' or i[-1] == '.' or i[-1] == ';':
-                new_list.append(i[:-1])
 
-            else:
-                new_list.append(i)
+    def get_experience(self, data):
+        min = '0'
+        max = '0'
 
-        return new_list
+        if data is not None:
+            experience = re.findall(r'\d+', data)
+            if len(experience)>1:
+                min = experience[0]
+                max = experience[1]
+            elif len(experience) == 1:
+                min = experience[0]
+                max = min
+
+        return {
+                "min": min,
+                "max": max
+               }
+
+    def get_description(self, data):
+        try:
+            description = re.search(r'.*?(?=(Обязанности|Задачи|Требования|Условия|Мы ожидаем от Вас|",))',data, flags=re.IGNORECASE)[0]
+            description = DataHandler.del_tags(description)
+            if len(description) > 0:
+                for index in range(len(description)):
+                    if len(description[index]) > 1000:
+                        description[index] = description[index][:1000]
+            if len(description) == 0:
+                description = ""
+        except:
+            description = ""
+
+        return description
+
+    def get_requirements(self, data):
+        try:
+            requirements = re.search(r'((?<=Требования)|(?<=Мы ожидаем от Вас)|(?<=Чем предстоит заниматься)).*?(?=(Обязанности|Условия|Задачи|Мы предлагаем|",))', data,flags=re.IGNORECASE)[0]
+            requirements = DataHandler.del_tags(requirements).split(';')
+            requirements = DataHandler.del_comma_in_list(requirements)
+            del requirements[-1]
+        except:
+            requirements = ""
+
+        return requirements
+
+    def get_additional_skills(self, data):
+        try:
+            additional_skills = re.search(r'((?<=Дополнительные навыки)|(?<=Дополнительные)|(?<=\\nнавыки)|(?<=Будет плюсом)|(?<=Дополнительные требования)|(?<=Дополнительные\\nтребования)).+?(?=(Условия|Требования|",))', data,flags=re.IGNORECASE)[0]
+            additional_skills = DataHandler.del_tags(additional_skills).split(';')
+            additional_skills = DataHandler.del_comma_in_list(additional_skills)
+            del additional_skills[-1]
+        except:
+            additional_skills = ""
+
+        return additional_skills
+
+    def get_responsibilities(self, data):
+        try:
+            responsibilities = re.search(r'(?<=:).+', re.search(r'((?<=Обязанности)|(?<=Задачи)).*?(?=(Условия|Требования|",))', data,flags=re.IGNORECASE)[0])[0]
+            responsibilities = DataHandler.del_tags(responsibilities).split(';')
+            responsibilities = DataHandler.del_comma_in_list(responsibilities)
+        except:
+            responsibilities = ""
+
+        return responsibilities
+
+    def get_key_skills(self, data):
+        if data is None:
+            return []
+
+        skills = []
+        if len(data) > 0:
+            for item in data:
+                skills.append(item['name'])
+
+        return skills
+
+    def get_location(self, data):
+        country = data['area']['id']
+        country = self.searcherCountry.get_country_name(country)
+
+        city = ''
+        street = ''
+        if data['address'] is not None:
+            if data['address']['city'] is not None:
+                city = data['address']['city']
+            if data['address']['street'] is not None:
+                street = data['address']['street']
+
+        return {
+                  "country": country,
+                  "city": city,
+                  "street": street
+               }
 
     def vacancy_parse(self, data):
 
-        id = re.search(r'\d+', data)[0]
-
-        name = re.search(r'(?<=:).+',re.search(r'\],\s*"name":\s*.+?(?=,\s*")',data)[0])[0].replace('"','')
-
-        try:
-            salary = re.findall(r'\d+', re.search(r'"salary"\s*.+?(?=,\s*"type)', data)[0])
-            if len(salary) > 1:
-                min_salary = salary[0]
-                max_salary = salary[1]
-            else:
-                min_salary = salary[0]
-                max_salary = '0'
-        except:
-            min_salary = '0'
-            max_salary = '0'
-
-        try:
-            experience = re.findall(r'\d+',re.search(r'"experience".+?(?=\s*})',data)[0])
-            if len(experience)>1:
-                min_exp = experience[0]
-                max_exp = experience[1]
-            else:
-                min_exp = experience[0]
-                max_exp = min_exp
-        except:
-            min_exp = '0'
-            max_exp = '0'
-
-        try:
-            description = re.sub(r'"description":\s*"','',re.search(r'(?<="contacts":\s*\w{4},\s*)"description":\s*".*?(?=(Обязанности|Задачи|Требования|Условия|",))',data, flags=re.IGNORECASE)[0])
-            description = self.del_tags(description)
-            if len(description) == 0:
-                description = []
-        except:
-            description = []
-
-        try:
-            requirements = re.search(r'(?<=:).+',re.search(r'(?<=Требования).*?(?=(Обязанности|Условия|Задачи|",))', data,flags=re.IGNORECASE)[0])[0]
-            requirements = self.del_tags(requirements).split(';')
-            requirements = self.del_comma_in_list(requirements)
-            del requirements[-1]
-        except:
-            requirements = []
-
-        try:
-            responsibilities = re.search(r'(?<=:).+', re.search(r'((?<=Обязанности)|(?<=Задачи)).*?(?=(Условия|Требования|",))', data,flags=re.IGNORECASE)[0])[0]
-            responsibilities = self.del_tags(responsibilities).split(';')
-            responsibilities = self.del_comma_in_list(responsibilities)
-            del responsibilities[-1]
-
-        except:
-            responsibilities = []
-
-        try:
-            additional_skills = re.search(r'((?<=Дополнительные навыки)|(?<=Дополнительные)|(?<=\\nнавыки)|(?<=Будет плюсом)|(?<=Дополнительные требования)|(?<=Дополнительные\\nтребования)).+?(?=(Условия|Требования|",))', data,flags=re.IGNORECASE)[0]
-            additional_skills = self.del_tags(additional_skills).split(';')
-            additional_skills = self.del_comma_in_list(additional_skills)
-            del additional_skills[-1]
-        except:
-            additional_skills = []
-
-
-        key_skills = re.search(r'key_skills":\s*.*?(?=\s*],\s*")', data)[0]
-        if key_skills == '[':
-            list_of_key_skills = []
-        else:
-            key_skills = re.findall(r'"name":\s*"\w+"',key_skills)
-            list_of_key_skills = []
-            for i in key_skills:
-                i = i.split(':')[1].replace('"','')
-                list_of_key_skills.append(i)
-
-        try:
-            country = re.search(r'area":\s*.+?(?=,\s*")',data)[0].split(':')[2].replace('"','').replace(' ', '')
-            country = self.searcherCountry.get_country_name(country)
-        except:
-            country = ''
-
-        try:
-            city = re.search(r'"city":\s*.+?(?=\s*,)', data)[0].split(':')[1].replace('"', '')
-        except:
-            city = ''
-
-        try:
-            street = re.search(r'"street":\s*.+?(?=\s*,)', data)[0].split(':')[1].replace('"', '')
-        except:
-            street = ''
-
-
-        employer = re.search(r'"name":\s*.+?(?=,\s*")', re.search(r'employer":\s*.+?(?=trusted)', data)[0])[0].split(':')[1].replace('"', '')
-
-        published = re.search(r'published_at":\s*.+?(?=T)', data)[0].split(':')[1].replace('"', '')
-
+        id = data['id']
+        name = data['name']
+        employer = data['employer']['name']
+        published = data['published_at'].replace('T', ' ')
         date_of_parsing = str(date.today())
+
+        experience = self.get_experience(data['experience']['name'])
+        salary = self.get_salary(data['salary'])
+        description_hh = data['description']
+        description = self.get_description(description_hh)
+        requirements = self.get_requirements(description_hh)
+        additional_skills = self.get_additional_skills(data)
+        responsibilities = self.get_responsibilities(description_hh)
+        key_skills = self.get_key_skills(data['key_skills'])
+        location = self.get_location(data)
 
         item = {
           "parsing": {
@@ -150,56 +151,41 @@ class HhParser():
           },
           "company": {
             "name": employer,
-            "location": {
-              "country": country,
-              "city": city,
-              "street": street
-            }
+            "location": location
           },
           "vacancy": {
             "id": id,
             "title": name,
             "publicDate": published,
             "description": description,
-            "workExp": {
-                "min": min_exp,
-                "max": max_exp
-            },
-            "salary": {
-              "min": min_salary,
-              "max": max_salary
-            },
+            "workExp": experience,
+            "salary": salary,
             "skills": {
               "necessary": requirements,
               "extra": additional_skills,
-              "key": list_of_key_skills
+              "key": key_skills
             },
             "responsibilities": responsibilities
           }
         }
         return item
 
-    def get_data(self, id):
-        url = f'https://api.hh.ru/vacancies/{id}'
-        req = requests.get(url)
-        data = req.content.decode()
-        req.close()
-        return data
-
     def get_vacancy_json(self, json_data):
 
         vacancies = []
 
         for json_item in json_data:
-            txt_item_data = json.dumps(json_item, ensure_ascii=False)
-            try:
-                vacancy_specialization = re.search(r'"specializations":\s\[{"id":\s".+?(?=,)', txt_item_data)[0].split(':')[2].replace('"','').replace(' ', '')
-                vacancy_professional = re.search(r'"professional_roles":\s*\[{"id":\s*"\d+', txt_item_data)[0].split(':')[2].replace('"','').replace(' ', '')
-            except:
+            vacancy_specialization = json_item['specializations']
+            vacancy_specialization = None if len(vacancy_specialization) == 0 else vacancy_specialization[0]['id']
+
+            vacancy_professional = json_item['professional_roles']
+            vacancy_professional = None if len(vacancy_professional) == 0 else vacancy_professional[0]['id']
+
+            if vacancy_specialization is None and vacancy_professional is None:
                 continue
 
-            if vacancy_professional in self.professional_roles or vacancy_specialization == self.specialization:
-                vacancy = self.vacancy_parse(txt_item_data)
+            if vacancy_professional in config.professional_roles or vacancy_specialization == config.specialization:
+                vacancy = self.vacancy_parse(json_item)
                 vacancies.append(vacancy)
 
         return vacancies

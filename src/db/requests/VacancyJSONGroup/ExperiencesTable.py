@@ -19,23 +19,20 @@ class ExperiencesTable(Writer):
         cursor = self.connection.cursor()
 
         try:
-            cursor.execute(
-                f" SELECT experience_id FROM experiences "
-                f" WHERE exp_min = '{exp_min}' AND exp_max = '{exp_max}'"
-            )
+            query = """insert into experiences (exp_min, exp_max) 
+                        values ('{}', '{}') on conflict (exp_min, exp_max) do update SET 
+                        exp_min = EXCLUDED.exp_min,
+                        exp_max = EXCLUDED.exp_max
+                        returning experience_id""".format(
+                        data['min'], data['max']
+                        )
+
+            cursor.execute(query)
             execute_result = cursor.fetchone()
-            if execute_result is None:
-                cursor.execute(
-                    f" INSERT INTO experiences (exp_min, exp_max) "
-                    f" VALUES  ('{exp_min}', '{exp_max}') "
-                    f" RETURNING experience_id"
-                    )
-                execute_result = cursor.fetchone()
             return execute_result[0]
 
         except Exception as _ex:
-            logging.exception("ExperiencesTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

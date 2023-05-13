@@ -1,6 +1,3 @@
-import logging
-
-import psycopg2
 from psycopg2 import sql
 
 from src.db.requests.Writer import Writer
@@ -13,50 +10,27 @@ class ResponsibilitiesTable(Writer):
         self.vacancy_id = vacancy_id
 
     def insert(self, data):
-        responsibilities = data['responsibilities']
-
+        responsibilities = set([item.strip() for item in data if len(item) < 1500 and len(item.strip()) > 2])
         if len(responsibilities) == 0:
             return
 
-        responsibility_id = []
-
         cursor = self.connection.cursor()
-
         try:
-            for responsibility in responsibilities:
-                responsibility = responsibility.strip()
-                if not responsibility or len(responsibility) < 2:
-                    continue
-                cursor.execute(
-                    f" SELECT responsibility_id FROM responsibilities "
-                    f" WHERE title = '{responsibility}'"
-                )
-                execute_result = cursor.fetchone()
-                if execute_result is None:
-                    cursor.execute(
-                        f" INSERT INTO responsibilities (title)"
-                        f" VALUES ('{responsibility}') "
-                        f" RETURNING responsibility_id "
-                    )
-                    execute_result = cursor.fetchone()
-                responsibility_id.append(execute_result[0])
-            if len(responsibility_id) == 0:
+            query = "insert into responsibilities (title) values {} on conflict (title) do update SET title = EXCLUDED.title  returning responsibility_id".format(
+                ",".join("('" + item + "')" for item in responsibilities)
+            )
+            cursor.execute(query)
+            insert_responsibility_data_set = [(resp_id[0], self.vacancy_id) for resp_id in cursor.fetchall()]
+            if len(insert_responsibility_data_set) == 0:
                 return
 
-            insert_responsibility_data = []
-            for responsibility_id in responsibility_id:
-                insert_responsibility_data.append((responsibility_id, self.vacancy_id))
-
-            insert_responsibility_data_set = set(insert_responsibility_data)
-
-            insert = sql.SQL('INSERT INTO vacancy_responsibilities (responsibility_id, vacancy_id) VALUES {}').format(
+            query = sql.SQL('INSERT INTO vacancy_responsibilities (responsibility_id, vacancy_id) VALUES {}').format(
                 sql.SQL(',').join(map(sql.Literal, insert_responsibility_data_set))
             )
-            cursor.execute(insert)
+            cursor.execute(query)
 
         except Exception as _ex:
-            logging.exception("ResponsibilitiesTable: ", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

@@ -1,7 +1,3 @@
-import logging
-
-import psycopg2
-
 from src.db.requests.Writer import Writer
 
 
@@ -11,30 +7,23 @@ class LocationsTable(Writer):
         Writer.__init__(self, connection)
 
     def insert(self, data):
-        country = data['country']
-        city = data['city']
-        street = data['street']
 
         cursor = self.connection.cursor()
-
         try:
-            cursor.execute(
-                f"SELECT location_id FROM locations WHERE country = '{country}' AND city = '{city}' AND street = '{street}'"
+            query = """insert into locations (country, city, street) 
+                       values ('{}', '{}', '{}') on conflict (country, city, street) do update SET 
+                       country = EXCLUDED.country,
+                       city = EXCLUDED.city,
+                       street = EXCLUDED.street
+                       returning location_id""".format(
+                    data['country'], data['city'], data['street']
             )
+            cursor.execute(query)
             execute_result = cursor.fetchone()
-            if execute_result is None:
-                cursor.execute(
-                    f" INSERT INTO locations (country, city, street) "
-                    f" VALUES ('{country}', '{city}', '{street}') "
-                    f" RETURNING location_id"
-                )
-                execute_result = cursor.fetchone()
-
             return execute_result[0]
 
         except Exception as _ex:
-            logging.exception("LocationsTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()

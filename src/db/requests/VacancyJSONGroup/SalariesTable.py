@@ -11,30 +11,29 @@ class SalariesTable(Writer):
         Writer.__init__(self, connection)
 
     def insert(self, data):
-        min = data['min']
-        max = data['max']
 
         cursor = self.connection.cursor()
 
         try:
-            cursor.execute(
-                f" SELECT salary_id FROM salaries "
-                f" WHERE lower_threshold = '{min}' "
-                f" AND upper_threshold = '{max}' "
-            )
+            query = "SELECT salary_id FROM salaries WHERE lower_threshold = {} AND upper_threshold = {} AND currency {} AND gross {}".format(
+                "'" + str(data['min']) + "'",
+                "'" + str(data['max']) + "'",
+                "is null" if data['currency'] is None else "= '{}'".format(data['currency']),
+                "is null" if data['gross'] is None else "= {}".format(data['gross']))
+            cursor.execute(query)
             execute_result = cursor.fetchone()
             if execute_result is None:
-                cursor.execute(
-                    f" INSERT INTO salaries (lower_threshold, upper_threshold) "
-                    f" VALUES ('{min}', '{max}') "
-                    f" RETURNING salary_id"
-                )
+                query = "INSERT INTO salaries  (lower_threshold, upper_threshold, currency, gross) VALUES ({}, {}, {}, {}) RETURNING salary_id".format(
+                    "'" + str(data['min']) + "'",
+                    "'" + str(data['max']) + "'",
+                    "NULL" if data['currency'] is None else "'{}'".format(data['currency']),
+                    "NULL" if data['gross'] is None else "'{}'".format(data['gross']))
+                cursor.execute(query)
                 execute_result = cursor.fetchone()
             return execute_result[0]
 
         except Exception as _ex:
-            logging.exception("SalariesTable", exc_info=True)
-            self.connection.close()
+            raise
 
         finally:
             cursor.close()
