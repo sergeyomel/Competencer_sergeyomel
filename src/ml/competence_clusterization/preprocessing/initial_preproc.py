@@ -25,6 +25,19 @@ def remove_punctuation(input: str) -> str:
     return input.translate(str.maketrans('', '', string.punctuation))
 
 
+def remove_digits(input: str) -> str:
+    """
+    Returns text without digits
+    """
+    return input.translate(str.maketrans('0123456789', 'DDDDDDDDDD'))
+
+
+def remove_alone_chars(input: str) -> str:
+    """
+    Returns lonely standing chars
+    """
+    return ' '.join([word for word in input.split() if len(word) > 1])
+
 def remove_whitespaces(input: str) -> str:
     """
     Returns text without extra whitespaces
