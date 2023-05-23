@@ -99,3 +99,4 @@ if __name__=="__main__":
         print(a)
         data = json.dumps(get_vacancies(a))
         time.sleep(1)
+
